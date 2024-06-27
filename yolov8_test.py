@@ -21,20 +21,6 @@ webcam.set(4, WEBCAM_HEIGHT)
 # Load YOLO model
 model = YOLO(MODEL_PATH)
 
-# Define object classes
-class_names = [
-    "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
-    "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-    "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-    "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
-    "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
-    "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
-    "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
-    "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
-    "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-    "teddy bear", "hair drier", "toothbrush"
-]
-
 def process_frame(frame):
     # Perform object detection
     results = model(frame, stream=True)
@@ -43,28 +29,25 @@ def process_frame(frame):
         boxes = r.boxes
 
         for box in boxes:
-            # Extract bounding box coordinates
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            # Extract class and confidence
+            class_id = int(box.cls[0])
+            confidence = float(box.conf[0])
 
-            # Get confidence score
-            confidence = math.ceil((box.conf[0] * 100)) / 100
-
-            # Skip low confidence detections
-            if confidence < CONFIDENCE_THRESHOLD:
+            # Skip if not a person or low confidence
+            if class_id != 0 or confidence < CONFIDENCE_THRESHOLD:
                 continue
 
-            # Get class name
-            class_id = int(box.cls[0])
-            class_name = class_names[class_id]
+            # Extract bounding box coordinates
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
 
             # Draw bounding box
             cv2.rectangle(frame, (x1, y1), (x2, y2), BOUNDING_BOX_COLOR, 3)
 
-            # Add text with class name and confidence
-            label = f"{class_name} {confidence:.2f}"
+            # Add text with confidence
+            label = f"Person {confidence:.2f}"
             cv2.putText(frame, label, (x1, y1 - 10), TEXT_FONT, TEXT_SCALE, TEXT_COLOR, TEXT_THICKNESS)
 
-            print(f"Detected: {class_name} (Confidence: {confidence:.2f})")
+            print(f"Detected: Person (Confidence: {confidence:.2f})")
 
     return frame
 
@@ -79,7 +62,7 @@ def main():
         processed_frame = process_frame(frame)
 
         # Display the resulting frame
-        cv2.imshow('Object Detection', processed_frame)
+        cv2.imshow('Human Detection', processed_frame)
 
         # Break the loop if 'q', 'ESC', or 'SPACE' is pressed
         if cv2.waitKey(1) in [ord('q'), 27, 32]:
