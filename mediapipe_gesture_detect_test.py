@@ -53,6 +53,18 @@ with gesture_recognizer.create_from_options(options) as recognizer:
                 mp_hands.HAND_CONNECTIONS,
                 mp_drawing_styles.get_default_hand_landmarks_style(),
                 mp_drawing_styles.get_default_hand_connections_style())
+        
+        cv2.putText(frame, text="Recognized Gesture(s) : ", org=(10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1,color=(255, 0, 0), thickness=2)
+        
+        text_newline_counter = 1
+            
+        for i in range(len(result.gestures)):
+            gesture_name = result.gestures[i][0].category_name
+            hand = result.handedness[i][0].category_name
+            if gesture_name == "None":
+                continue
+            text_newline_counter += 1
+            cv2.putText(frame, text=f"{hand} : {gesture_name}", org=(10, 35*text_newline_counter), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1,color=(255, 0, 0), thickness=2)
 
         # Display the frame with the hand landmarks
         cv2.imshow("frame", frame)
